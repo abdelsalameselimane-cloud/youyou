@@ -1,5 +1,7 @@
 <resources>
-    <style name="Theme.REQ" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.ReqCalc" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:windowBackground">@color/app_bg</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 </resources>

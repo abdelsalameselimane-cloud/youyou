@@ -1,9 +1,15 @@
-# REQ Calculator – calculation engine (step 1)
+# حاسبة REQ — مشروع أندرويد
 
-`npm install && npm test`
+## البناء
+1. ثبّت Android Studio (الإصدار الحديث).
+2. File ▸ Open ثم اختر مجلد `ReqCalc-Android`، وانتظر انتهاء Gradle Sync (يحتاج إنترنت أول مرة).
+3. وصّل هاتفك (تصحيح USB) أو شغّل محاكيًا، ثم Run ▶.
+4. لملف APK للتثبيت: Build ▸ Build Bundle(s) / APK(s) ▸ Build APK(s).
+   الملف يظهر في `app/build/outputs/apk/debug/app-debug.apk`.
 
-Validated on EJ______11042026.330 (ATM electronic journal):
-842 REQ lines | 497 valid (sum 7,289 notes) | 337 no cash dispensed | 8 need verification.
-Every valid sum equals NOTES PRESENTED, and notes x denomination equals the REQ amount (14,578,000 DZD).
-
-Next steps: Expo UI (RTL ar/fr/en), expo-sqlite history, SheetJS/ExcelJS + expo-print export, OCR, EAS APK build.
+## ملاحظات
+- يعمل على أندرويد 10 فما فوق (minSdk 29).
+- الصفحة موجودة في `app/src/main/assets/index.html` وتعمل دون إنترنت.
+- المستندات تُحفظ على الهاتف (تُمسح إن مسحت بيانات التطبيق).
+- زر «تصدير» يحفظ CSV في مجلد التنزيلات، وزر «فتح في Excel» يحفظه ثم يفتحه بتطبيق جداول.
+- تسجيل الدخول بحساب Google مخفي داخل التطبيق: جوجل تمنع تسجيل الدخول داخل WebView.
