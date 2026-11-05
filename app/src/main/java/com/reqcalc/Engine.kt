@@ -70,10 +70,30 @@ object Engine {
     fun edit(e: Entry, n: List<Int>) = e.copy(numbers = n, total = n.sum(),
         status = if (n.size == 4) Status.VALID else Status.VERIFY, note = "Edited", code = "EDITED", arg = "")
 
-    fun toCsv(e: List<Entry>): String {
-        val sb = StringBuilder("\uFEFFRef,Time,REQ,N1,N2,N3,N4,Total,Status,Note\n")
-        for (x in e) sb.append("${x.ref},${x.time},${x.req},${(0..3).joinToString(",") { x.numbers.getOrNull(it)?.toString() ?: "" }},${x.total},${x.status},\"${x.note.replace("\"", "\"\"")}\"\n")
-        sb.append("GRAND TOTAL,,,,,,,${summarize(e).grand},,\n")
+    /** Text of the Note column in the chosen file language ("fr" default, or "en"). */
+    fun noteText(x: Entry, lang: String): String = if (lang == "en") x.note else when (x.code) {
+        "SUM" -> "La somme diffère de NOTES PRESENTED"
+        "BAD" -> "Quatre nombres attendus : ${x.arg}"
+        "DECLINED" -> "Refusé RC ${x.arg}"
+        "NOCASH" -> "Aucun retrait"
+        "NOLINE" -> "REQ > 0 mais aucune ligne de quatre nombres"
+        "EDITED" -> "Modifié"
+        else -> x.note
+    }
+
+    /** CSV for Excel. [lang] is "fr" (default) or "en" and applies to headers, statuses and notes. */
+    fun toCsv(e: List<Entry>, lang: String = "fr"): String {
+        val fr = lang != "en"
+        val head = if (fr) "Réf,Heure,REQ,N1,N2,N3,N4,Total,Statut,Note" else "Ref,Time,REQ,N1,N2,N3,N4,Total,Status,Note"
+        val sb = StringBuilder("\uFEFF$head\n")
+        for (x in e) {
+            val st = if (!fr) x.status.toString() else when (x.status) {
+                Status.VALID -> "VALIDE"; Status.NO_DISPENSE -> "SANS DISTRIBUTION"; Status.VERIFY -> "À VÉRIFIER"
+            }
+            val note = noteText(x, lang).replace("\"", "\"\"")
+            sb.append("${x.ref},${x.time},${x.req},${(0..3).joinToString(",") { x.numbers.getOrNull(it)?.toString() ?: "" }},${x.total},$st,\"$note\"\n")
+        }
+        sb.append("${if (fr) "TOTAL GÉNÉRAL" else "GRAND TOTAL"},,,,,,,${summarize(e).grand},,\n")
         return sb.toString()
     }
 }

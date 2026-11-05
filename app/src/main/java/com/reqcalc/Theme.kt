@@ -145,6 +145,7 @@ object Ic {
     val Info = icon(CIRCLE, "M12 11v5", "M12 8v.01")
     val Ban = icon(CIRCLE, "M5.6 5.6l12.8 12.8")
     val File = icon("M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z", "M14 3v5h5", "M9 13h6", "M9 17h4")
+    val Table = icon("M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z", "M4 10h16", "M4 15h16", "M10 4v16")
     val Calc = icon("M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z", "M8 7.5h8", "M8.5 12h.01", "M12 12h.01", "M15.5 12h.01", "M8.5 16h.01", "M12 16h.01", "M15.5 16h.01")
 }
 

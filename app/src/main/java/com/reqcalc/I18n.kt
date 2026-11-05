@@ -27,6 +27,8 @@ object I18n {
 
     val dict: Map<String, Map<String, String>> = mapOf(
         "en" to mapOf(
+            "csv_lang" to "Notes language in Excel", "lang_en" to "English", "lang_fr" to "Français",
+            "open_excel" to "Open in Excel", "err_excel" to "Excel couldn't open the file", "err_excel_desc" to "Install Excel, or use Export and open the file from your files.",
             "tagline" to "Add up the notes from your ATM log.",
             "language" to "Language", "back" to "Back",
             "import_title" to "Import a document", "import_desc" to "Choose the text file that holds your REQ log.",
@@ -58,6 +60,8 @@ object I18n {
             "n_EDITED" to "You edited this entry.",
         ),
         "fr" to mapOf(
+            "csv_lang" to "Langue des notes dans Excel", "lang_en" to "English", "lang_fr" to "Français",
+            "open_excel" to "Ouvrir dans Excel", "err_excel" to "Excel n'a pas pu ouvrir le fichier", "err_excel_desc" to "Installez Excel, ou utilisez Exporter puis ouvrez le fichier depuis vos fichiers.",
             "tagline" to "Additionnez les billets de votre journal DAB.",
             "language" to "Langue", "back" to "Retour",
             "import_title" to "Importer un document", "import_desc" to "Choisissez le fichier texte qui contient votre journal REQ.",
@@ -89,6 +93,8 @@ object I18n {
             "n_EDITED" to "Vous avez modifié cette entrée.",
         ),
         "ar" to mapOf(
+            "csv_lang" to "لغة الملاحظات في Excel", "lang_en" to "English", "lang_fr" to "Français",
+            "open_excel" to "فتح في Excel", "err_excel" to "تعذّر فتح الملف في Excel", "err_excel_desc" to "ثبّت تطبيق Excel، أو استخدم التصدير ثم افتح الملف من ملفاتك.",
             "tagline" to "اجمع أوراق النقد من سجل جهاز الصرف.",
             "language" to "اللغة", "back" to "رجوع",
             "import_title" to "استيراد مستند", "import_desc" to "اختر الملف النصي الذي يحتوي سجل REQ.",

@@ -1,6 +1,10 @@
 package com.reqcalc
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.os.Bundle
+import androidx.core.content.FileProvider
+import java.io.File
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -78,6 +82,8 @@ fun Root(store: Store, lang: String, onLang: (String) -> Unit) {
     var saving by remember { mutableStateOf(false) }
     var homeErr by remember { mutableStateOf<String?>(null) }     // "open" | "none"
     var saveErr by remember { mutableStateOf(false) }
+    var excelErr by remember { mutableStateOf(false) }
+    var csvLang by remember { mutableStateOf("fr") }               // Excel notes language: French by default
     var toast by remember { mutableStateOf<String?>(null) }
     var langOpen by remember { mutableStateOf(false) }
     var editOpen by remember { mutableStateOf(false) }
@@ -104,12 +110,35 @@ fun Root(store: Store, lang: String, onLang: (String) -> Unit) {
     val export = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
         if (uri != null) scope.launch {
             saving = true; saveErr = false
-            val data = Engine.toCsv(entries).toByteArray()
+            val data = Engine.toCsv(entries, csvLang).toByteArray()
             val ok = withContext(Dispatchers.IO) {
                 try { ctx.contentResolver.openOutputStream(uri)?.use { it.write(data); true } ?: false } catch (e: Exception) { false }
             }
             saving = false
             if (ok) toast = "saved" else saveErr = true
+        }
+    }
+
+    // Writes a temporary CSV and opens it straight in Excel (or any app that can read CSV).
+    val openExcel: () -> Unit = {
+        scope.launch {
+            saving = true; excelErr = false
+            val data = Engine.toCsv(entries, csvLang).toByteArray()
+            val uri = withContext(Dispatchers.IO) {
+                try {
+                    val dir = File(ctx.cacheDir, "export").apply { mkdirs() }
+                    val f = File(dir, "REQ_report.csv"); f.writeBytes(data)
+                    FileProvider.getUriForFile(ctx, ctx.packageName + ".files", f)
+                } catch (e: Exception) { null }
+            }
+            saving = false
+            if (uri == null) { excelErr = true; return@launch }
+            val view = Intent(Intent.ACTION_VIEW).setDataAndType(uri, "text/csv").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            try {
+                ctx.startActivity(Intent(view).setPackage("com.microsoft.office.excel"))
+            } catch (e: ActivityNotFoundException) {
+                try { ctx.startActivity(Intent.createChooser(view, null)) } catch (e2: Exception) { excelErr = true }
+            } catch (e: SecurityException) { excelErr = true }
         }
     }
 
@@ -125,7 +154,7 @@ fun Root(store: Store, lang: String, onLang: (String) -> Unit) {
                 Results(
                     entries = entries, query = query, onQuery = { query = it },
                     onlyVerify = onlyVerify, onOnlyVerify = { onlyVerify = it },
-                    saving = saving, saveErr = saveErr,
+                    saving = saving, saveErr = saveErr, excelErr = excelErr, onExcel = openExcel, csvLang = csvLang, onCsvLang = { csvLang = it },
                     onBack = { screen = 0 }, onExport = { export.launch("REQ_report.csv") },
                     onEdit = { editIdx = it; editOpen = true },
                 )
@@ -219,7 +248,7 @@ fun LangRow(name: String, selected: Boolean, onClick: () -> Unit) {
 fun ColumnScope.Results(
     entries: List<Entry>, query: String, onQuery: (String) -> Unit,
     onlyVerify: Boolean, onOnlyVerify: (Boolean) -> Unit,
-    saving: Boolean, saveErr: Boolean,
+    saving: Boolean, saveErr: Boolean, excelErr: Boolean, onExcel: () -> Unit, csvLang: String, onCsvLang: (String) -> Unit,
     onBack: () -> Unit, onExport: () -> Unit, onEdit: (Int) -> Unit,
 ) {
     val c = tk()
@@ -254,15 +283,25 @@ fun ColumnScope.Results(
                     Stat(s.noDispense, t("no_dispense"), c.mu)
                 }
                 Spacer(Modifier.height(Sp.xl))
+                Txt(t("csv_lang"), Type.small, c.mu)
+                Spacer(Modifier.height(Sp.s))
+                Row(horizontalArrangement = Arrangement.spacedBy(Sp.m)) {
+                    Chip(t("lang_fr"), csvLang == "fr") { onCsvLang("fr") }
+                    Chip(t("lang_en"), csvLang == "en") { onCsvLang("en") }
+                }
+                Spacer(Modifier.height(Sp.l))
                 PrimaryButton(
                     if (saving) t("exporting") else t("export_csv"), onExport,
                     icon = Ic.Download, enabled = !saving, loading = saving,
                 )
+                Spacer(Modifier.height(Sp.m))
+                SecondaryButton(t("open_excel"), onExcel, icon = Ic.Table, enabled = !saving)
             }
         }
         if (saveErr) item {
             Banner(Kind.ERR, t("err_save"), t("err_save_desc"), action = { SecondaryButton(t("try_again"), onExport) })
         }
+        if (excelErr) item { Banner(Kind.ERR, t("err_excel"), t("err_excel_desc")) }
         item {
             if (s.verify > 0) Banner(Kind.ERR, t("verify_banner", "n" to s.verify.toString()), t("verify_banner_desc"))
             else Banner(Kind.OK, t("all_ok"), t("all_ok_desc"))
