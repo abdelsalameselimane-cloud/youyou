@@ -1,6 +1,3 @@
 <resources>
-<string name="app_name">REQ Calculator</string><string name="import_doc">Importer un document</string><string name="detected">REQ détectés</string>
-<string name="valid">Valides</string><string name="verify">À vérifier</string><string name="grand">Total général</string>
-<string name="search">Rechercher</string><string name="only_verify">À vérifier seulement</string><string name="export_csv">Exporter (Excel/CSV)</string>
-<string name="no_dispense">Sans distribution</string>
+    <string name="app_name">Calculateur REQ</string>
 </resources>

@@ -1,0 +1,5 @@
+<resources>
+    <style name="Theme.REQ" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/app_bg</item>
+    </style>
+</resources>

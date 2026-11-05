@@ -2,7 +2,8 @@ package com.reqcalc
 
 enum class Status { VALID, NO_DISPENSE, VERIFY }
 data class Entry(val ref: String, val time: String, val req: Double, val numbers: List<Int>,
-                 val total: Int, val status: Status, val note: String, val raw: String)
+                 val total: Int, val status: Status, val note: String, val raw: String,
+                 val code: String = "", val arg: String = "")
 data class Summary(val detected: Int, val valid: Int, val verify: Int, val noDispense: Int, val grand: Int)
 
 object Engine {
@@ -29,7 +30,7 @@ object Engine {
         val out = ArrayList<Entry>()
         idx.forEachIndexed { k, i ->
             val end = minOf(idx.getOrElse(k + 1) { l.size }, i + 14)
-            var ref = "REQ %03d".format(k + 1); var time = ""
+            var ref = String.format(java.util.Locale.US, "REQ %03d", k + 1); var time = ""
             for (j in i - 1 downTo maxOf(0, i - 4)) {
                 val h = HEADER.find(l[j]); if (h != null) { ref = h.groupValues[1]; break }
                 val t = TIME.find(l[j]); if (t != null) time = t.groupValues[1]
@@ -45,18 +46,19 @@ object Engine {
             }
             val raw = l.subList(i, end).joinToString("\n").trim()
             val rc = RC.find(raw)?.groupValues?.get(1)
-            var status: Status; var note = ""
+            var status: Status; var note = ""; var code = ""; var arg = ""
             if (nums.size == 4) {
                 status = Status.VALID
                 val np = NP.find(raw)
                 if (np != null && np.groupValues[1].split(",").sumOf { it.toIntOrNull() ?: 0 } != nums.sum()) {
-                    status = Status.VERIFY; note = "Sum differs from NOTES PRESENTED"
+                    status = Status.VERIFY; note = "Sum differs from NOTES PRESENTED"; code = "SUM"
                 }
-            } else if (bad.isNotEmpty()) { status = Status.VERIFY; note = "Expected 4 numbers: $bad" }
-            else if (amt == 0.0 || rc != null) { status = Status.NO_DISPENSE; note = if (rc != null) "Declined RC $rc" else "No cash" }
-            else { status = Status.VERIFY; note = "REQ > 0 but no four-number line" }
+            } else if (bad.isNotEmpty()) { status = Status.VERIFY; note = "Expected 4 numbers: $bad"; code = "BAD"; arg = bad }
+            else if (amt == 0.0 || rc != null) { status = Status.NO_DISPENSE; note = if (rc != null) "Declined RC $rc" else "No cash"
+                code = if (rc != null) "DECLINED" else "NOCASH"; arg = rc ?: "" }
+            else { status = Status.VERIFY; note = "REQ > 0 but no four-number line"; code = "NOLINE" }
             if (seen.add("$ref|$time|$amt|${nums.joinToString("-")}"))
-                out.add(Entry(ref, time, amt, nums, nums.sum(), status, note, raw))
+                out.add(Entry(ref, time, amt, nums, nums.sum(), status, note, raw, code, arg))
         }
         return out
     }
@@ -66,11 +68,11 @@ object Engine {
         e.filter { it.status == Status.VALID }.sumOf { it.total })
 
     fun edit(e: Entry, n: List<Int>) = e.copy(numbers = n, total = n.sum(),
-        status = if (n.size == 4) Status.VALID else Status.VERIFY, note = "Edited")
+        status = if (n.size == 4) Status.VALID else Status.VERIFY, note = "Edited", code = "EDITED", arg = "")
 
     fun toCsv(e: List<Entry>): String {
         val sb = StringBuilder("\uFEFFRef,Time,REQ,N1,N2,N3,N4,Total,Status,Note\n")
-        for (x in e) sb.append("${x.ref},${x.time},${x.req},${(0..3).joinToString(",") { x.numbers.getOrNull(it)?.toString() ?: "" }},${x.total},${x.status},\"${x.note}\"\n")
+        for (x in e) sb.append("${x.ref},${x.time},${x.req},${(0..3).joinToString(",") { x.numbers.getOrNull(it)?.toString() ?: "" }},${x.total},${x.status},\"${x.note.replace("\"", "\"\"")}\"\n")
         sb.append("GRAND TOTAL,,,,,,,${summarize(e).grand},,\n")
         return sb.toString()
     }

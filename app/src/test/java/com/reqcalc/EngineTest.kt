@@ -26,4 +26,14 @@ class EngineTest {
         val e = Engine.parse("REQ: 1\n1-1-1\n")[0]
         assertEquals(10, Engine.edit(e, listOf(1, 2, 3, 4)).total)
     }
+    @Test fun noteCodesDriveTranslations() {
+        val e = Engine.parse("REQ: 5\n1-2-3\nREQ: 0.00 DZD\nREQ: 9\nCARD: 1\n")
+        assertEquals(listOf("BAD", "NOCASH", "NOLINE"), e.map { it.code })
+        assertEquals("1-2-3", e[0].arg)
+        assertEquals("EDITED", Engine.edit(e[0], listOf(1, 2, 3, 4)).code)
+    }
+    @Test fun csvEscapesQuotes() {
+        val e = Engine.parse("REQ: 1\n1-1-1-1\n")[0].copy(note = "say \"hi\"")
+        assertEquals(true, Engine.toCsv(listOf(e)).contains("\"say \"\"hi\"\"\""))
+    }
 }
