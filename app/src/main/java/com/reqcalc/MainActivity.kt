@@ -163,7 +163,7 @@ fun Root(store: Store, lang: String, onLang: (String) -> Unit) {
                     hasLast = entries.isNotEmpty(),
                     lastDesc = t("last_desc", "n" to entries.size.toString(), "t" to num(Engine.summarize(entries).grand)),
                     busy = busy, err = homeErr,
-                    onPick = { pick.launch(arrayOf("*/*")) }, onLast = { screen = 1 }, onLang = { langOpen = true },
+                    onPick = { pick.launch(arrayOf("text/*")) }, onLast = { screen = 1 }, onLang = { langOpen = true },
                 )
             }
         }
