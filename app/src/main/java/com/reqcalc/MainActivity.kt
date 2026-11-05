@@ -64,7 +64,7 @@ fun App(store: Store) {
         CompositionLocalProvider(
             LocalTokens provides (if (dark) DarkTokens else LightTokens),
             LocalStrings provides I18n.dict.getValue(lang),
-            LocalLayoutDirection provides (if (lang == "ar") LayoutDirection.Rtl else LayoutDirection.Ltr),
+            LocalLayoutDirection provides LayoutDirection.Ltr, // layout never flips; only the text changes language
         ) { Root(store, lang) { lang = it; store.lang = it } }
     }
 }
